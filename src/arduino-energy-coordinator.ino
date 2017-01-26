@@ -42,18 +42,32 @@ char powerFactor[8] = { 0 };
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   initEthernet(); // get IP address from router
+  uploadData();
 }
 
-// continuously reads packets, looking for ZB receive or modem status
 void loop() {
-  uploadData();
-  delay(10000);
+  // if there are incoming bytes available
+  // from the server, read them and print them:
+  if (client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
+
+  // if the server's disconnected, stop the client:
+  if (!client.connected()) {
+    Serial.println();
+    Serial.println("disconnecting.");
+    client.stop();
+
+    // do nothing forevermore:
+    while (true);
+  }
 }
 
 void initEthernet() {
-  Serial.println("Start Ethernet");
+  Serial.print("Start Ethernet: ");
 
   while (Ethernet.begin(mac) != 1) {
     Serial.println("IP error");
@@ -65,5 +79,17 @@ void initEthernet() {
 }
 
 void uploadData() {
-
+  Serial.print("Connect to server: ");
+  // if you get a connection, report back via serial
+  if (client.connect(server, 80)) {
+    Serial.println("connected");
+    // Make a HTTP request:
+    client.println("GET /emoncms/input/post.json?node=1&json={power:200}&apikey=100bdc36203b7a7183fa0b79445ebda6 HTTP/1.1");
+    client.println("Host: simiolabs.com");
+    client.println("Connection: close");
+    client.println();
+  } else {
+    // if you didn't get a connection to the server:
+    Serial.println("connection failed");
+  }
 }
