@@ -49,22 +49,7 @@ void setup() {
 }
 
 void loop() {
-  // if there are incoming bytes available
-  // from the server, read them and print them:
-  if (client.available()) {
-    char c = client.read();
-    Serial.print(c);
-  }
-
-  // if the server's disconnected, stop the client:
-  if (!client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting.");
-    client.stop();
-
-    // do nothing forevermore:
-    while (true);
-  }
+  
 }
 
 void initEthernet() {
@@ -106,4 +91,14 @@ void uploadData() {
     // if you didn't get a connection to the server:
     Serial.println("connection failed");
   }
+
+  while (client.connected()) {
+    if (client.available()) {
+      char c = client.read();
+      Serial.print(c);
+    }
+  }
+  Serial.println();
+  Serial.println("disconnecting.");
+  client.stop();
 }
