@@ -35,6 +35,12 @@ const String feedName[NUM_FIELDS] = { "apparent_power", "current",
                                       "voltage" };
 float feedData[NUM_FIELDS];
 
+XBee xbee = XBee();
+// create reusable response objects for responses we expect to handle
+XBeeResponse response = XBeeResponse();
+ZBRxResponse rx = ZBRxResponse();
+ModemStatusResponse msr = ModemStatusResponse();
+
 byte node = 1;
 char realPower[8] = { 0 };
 char apparentPower[8] = { 0 };
@@ -50,7 +56,51 @@ void setup() {
 }
 
 void loop() {
+  xbee.readPacket();
 
+  if (xbee.getResponse().isAvailable()) {
+    // got something
+    if (xbee.getResponse().getApiId() == ZB_RX_RESPONSE) {
+      // got a zb rx packet
+
+      // now fill our zb Rx class
+      xbee.getResponse().getZBRxResponse(rx);
+
+      if (rx.getOption() == ZB_PACKET_ACKNOWLEDGED) {
+      // the sender got an ACK
+        Serial.println("ACK");
+      } else {
+        // we got it (obviously) but sender didn't get an ACK
+        Serial.println("no ACK");
+      }
+
+      Serial.print("from: ");
+      Serial.println(rx.getRemoteAddress16());
+
+      //processData();
+    } else if (xbee.getResponse().getApiId() == MODEM_STATUS_RESPONSE) {
+      xbee.getResponse().getModemStatusResponse(msr);
+      // the local XBee sends this response on certain events, like association/dissociation
+
+      if (msr.getStatus() == ASSOCIATED) {
+        // yay this is great
+        //Serial.println("Associated");
+      } else if (msr.getStatus() == DISASSOCIATED) {
+        // this is awful..
+        //Serial.println("Disssociated");
+      } else {
+        // another status
+        //Serial.println("Unknown");
+      }
+    } else {
+      // not something we were expecting
+      Serial.println("Unexp. error");
+    }
+  } else if (xbee.getResponse().isError()) {
+    Serial.print("Read error: ");
+    Serial.println(xbee.getResponse().getErrorCode());
+  }
+  delay(1000);
 }
 
 void initEthernet() {
@@ -100,6 +150,6 @@ void uploadData() {
     }
   }
   Serial.println();
-  Serial.println("disconnecting.");
+  Serial.println("Disconnecting...");
   client.stop();
 }
