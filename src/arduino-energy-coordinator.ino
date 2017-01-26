@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <SPI.h>
 #include <Ethernet.h>
+#include <XBee.h>
 
 EthernetClient client;
 // MAC address for your Ethernet shield
@@ -49,7 +50,7 @@ void setup() {
 }
 
 void loop() {
-  
+
 }
 
 void initEthernet() {
