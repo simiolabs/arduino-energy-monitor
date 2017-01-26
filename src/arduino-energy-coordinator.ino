@@ -33,7 +33,7 @@ const byte NUM_FIELDS = 5;
 const String feedName[NUM_FIELDS] = { "apparent_power", "current",
                                       "power_factor", "real_power",
                                       "voltage" };
-float feedData[NUM_FIELDS];
+String feedData[NUM_FIELDS];
 
 XBee xbee = XBee();
 // create reusable response objects for responses we expect to handle
@@ -77,7 +77,7 @@ void loop() {
       Serial.print("from: ");
       Serial.println(rx.getRemoteAddress16());
 
-      //processData();
+      processData();
     } else if (xbee.getResponse().getApiId() == MODEM_STATUS_RESPONSE) {
       xbee.getResponse().getModemStatusResponse(msr);
       // the local XBee sends this response on certain events, like association/dissociation
@@ -115,12 +115,54 @@ void initEthernet() {
   Serial.println(Ethernet.localIP());
 }
 
+void processData() {
+  // get node id and sensor number
+  node = rx.getData(41);
+  uint8_t sensor = rx.getData(40);
+  Serial.print('N');
+  Serial.print(node);
+  Serial.print('S');
+  Serial.println(sensor);
+
+  getDataFromPayload(realPower, 0, 8); // variable, position, length
+  getDataFromPayload(apparentPower, 8, 8);
+  getDataFromPayload(current, 16, 8);
+  getDataFromPayload(voltage, 24, 8);
+  getDataFromPayload(powerFactor, 32, 8);
+
+  printData();
+
+  feedData[0] = String(apparentPower);
+  feedData[1] = String(current);
+  feedData[2] = String(powerFactor);
+  feedData[3] = String(realPower);
+  feedData[4] = String(voltage);
+
+  Serial.println("Uploading...");
+  uploadData();
+}
+
+void getDataFromPayload(char *dataString, int pos, int length) {
+  for (int i = pos; i < pos + length; i++, dataString++) {
+    *dataString = rx.getData(i);
+  }
+}
+
+// comment this function out to free some memory!
+void printData() {
+  Serial.println(realPower);
+  Serial.println(apparentPower);
+  Serial.println(voltage);
+  Serial.println(current);
+  Serial.println(powerFactor);
+}
+
 void uploadData() {
   Serial.print("Connect to server: ");
   // if you get a connection, report back via serial
   if (client.connect(server, 80)) {
     Serial.println("connected");
-    // Make a HTTP request:
+    // make a HTTP request
     client.print("GET /emoncms/input/post.json?node=");
     client.print(node);
     client.print("&json={");
@@ -139,7 +181,7 @@ void uploadData() {
     client.println("Connection: close");
     client.println();
   } else {
-    // if you didn't get a connection to the server:
+    // if you didn't get a connection to the server
     Serial.println("connection failed");
   }
 
