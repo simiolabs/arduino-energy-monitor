@@ -23,17 +23,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Ethernet.h>
 
 EthernetClient client;
-char server[] = "simiolabs.com";      // remote host site
-const String apiKey = "100bdc36203b7a7183fa0b79445ebda6";
-const byte NUM_FIELDS = 9;
-const String fieldNames[NUM_FIELDS] = {"apparent_power", "current", "name",
-                                       "node_id", "power_factor", "real_power",
-                                       "sensor_id", "status", "voltage"};
-String fieldData[NUM_FIELDS];
-
 // MAC address for your Ethernet shield
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0x74, 0xFB };
 
+char server[] = "simiolabs.com";      // remote host site
+const String apiKey = "100bdc36203b7a7183fa0b79445ebda6";
+const byte NUM_FIELDS = 5;
+const String feedName[NUM_FIELDS] = { "apparent_power", "current",
+                                      "power_factor", "real_power",
+                                      "voltage" };
+float feedData[NUM_FIELDS];
+
+byte node = 1;
 char realPower[8] = { 0 };
 char apparentPower[8] = { 0 };
 char current[8] = { 0 };
@@ -84,7 +85,20 @@ void uploadData() {
   if (client.connect(server, 80)) {
     Serial.println("connected");
     // Make a HTTP request:
-    client.println("GET /emoncms/input/post.json?node=1&json={power:200}&apikey=100bdc36203b7a7183fa0b79445ebda6 HTTP/1.1");
+    client.print("GET /emoncms/input/post.json?node=");
+    client.print(node);
+    client.print("&json={");
+    int lastItem = NUM_FIELDS - 1;
+    for (int i = 0; i < lastItem; i++) {
+      client.print(feedName[i]);
+      client.print(":");
+      client.print(feedData[i]);
+      client.print(",");
+    }
+    client.print(feedName[lastItem]);
+    client.print(":");
+    client.print(feedData[lastItem]);
+    client.println("}&apikey=100bdc36203b7a7183fa0b79445ebda6 HTTP/1.1");
     client.println("Host: simiolabs.com");
     client.println("Connection: close");
     client.println();
