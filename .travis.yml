@@ -75,7 +75,7 @@ before_install:
   - sudo mv arduino-1.8.1 /usr/local/share/arduino
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
   - git clone https://github.com/andrewrapp/xbee-arduino.git
-  - sudo mv xbee-arduino-master /usr/local/share/arduino/libraries/xbee-arduino
+  - sudo mv xbee-arduino /usr/local/share/arduino/libraries/
 install:
 script:
   - arduino --verify --board arduino:avr:ethernet $PWD/src/arduino-energy-coordinator.ino
