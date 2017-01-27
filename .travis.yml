@@ -76,7 +76,7 @@ before_install:
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
 install:
 script:
-  - arduino --verify --board arduino:avr:ethernet $PWD/arduino-energy-coordinator.ino
+  - arduino --verify --board arduino:avr:ethernet $PWD/src/arduino-energy-coordinator.ino
 notifications:
   email:
     on_success: change
