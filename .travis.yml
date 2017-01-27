@@ -79,6 +79,7 @@ before_install:
 install:
 script:
   - arduino --verify --board arduino:avr:ethernet $PWD/src/arduino-energy-coordinator.ino
+  - arduino --verify --board arduino:avr:uno $PWD/src/arduino-energy-coordinator-wifi.ino
 notifications:
   email:
     on_success: change
