@@ -53,7 +53,6 @@ void setup() {
   Serial.begin(9600);
   xbee.begin(Serial); // initialize Xbee module
   initEthernet(); // get IP address from router
-  uploadData();
 }
 
 void loop() {
@@ -79,6 +78,7 @@ void loop() {
       Serial.println(rx.getRemoteAddress16());
 
       processData();
+      uploadData();
     } else if (xbee.getResponse().getApiId() == MODEM_STATUS_RESPONSE) {
       xbee.getResponse().getModemStatusResponse(msr);
       // the local XBee sends this response on certain events, like association/dissociation
